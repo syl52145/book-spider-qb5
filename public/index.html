@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+ 
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>聊天</title>
+    <link rel="stylesheet" href="">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script language="JavaScript" src="http://code.jquery.com/jquery-1.11.0.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+<style type="text/css" media="screen">
+/* div {
+    border: 1px solid #cccccc;
+    width: 100%;
+    min-height: 100px;
+} */
+/* .online{
+	float:right;
+	margin-right:15px;
+} */
+/* #app{
+	height: -webkit-fill-available;
+} */
+#shelter{
+    box-shadow: 0px 3px 5px #888888;
+	margin: auto;
+}
+#fixed_table #fix_head{
+    background: #FFFFFF;
+    
+}
+#fixed_table{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    table-layout:fixed;
+}
+.scroll_table_content{
+    width:100%; 
+    height:600px;
+    overflow:auto;
+}
+.a_click{
+	padding-right: 24px;
+	padding-left:24px;
+}
+.b_click{
+	padding-right: 24px;
+	padding-left:24px;
+}
+#table_head{
+	font-size: 18px;
+	margin-bottom: 10px;
+}
+.online{
+	text-align: right;
+	padding-right: 15px;
+}
+</style>
+ 
+<body>
+	<div id="app" class="container">
+		<h1>小说爬虫</h1>
+		<h1 style="display: none;">聊天室</h1>
+		<div id="table_head" class="row">
+					<div class="status col-lg-6 col-md-6" style="padding-top: 7px;padding-bottom: 7px;"></div>
+					<div class="online col-lg-6 col-md-6"></div>
+		</div>
+		<div id="scroll_wrap" class="scroll_table_content" style="background: #F1F1F1;">
+			<table id="top_fix_table"  border="0" cellpadding="4" cellspacing="0" class="table table-hover">
+				
+				<!-- <h3 ></h3>
+				<h3></h3> -->
+				<tbody class="msg"></tbody>
+				
+			</table>
+			<!-- <div id="test_width"></div> -->
+		</div>
+		<div class="row" style="margin: 20px 0 20px;">
+			<div class="col-lg-6 col-md-6">
+				<input type="text" id="message" name="" value="" placeholder="请输入小说目录地址" class="form-control">
+				<input type="text" id="chat" name="" value="" style="display: none;" placeholder="开始聊天..." class="form-control">
+			</div>
+			<div class="col-lg-6 col-md-6" style="display: flex;justify-content: space-around;" >
+				<a href="javascript:void(0)" id="a_click" style="<!-- position: absolute;left: 40px; -->" class="a_click btn btn-info">发送</a>
+				<a href="javascript:void(0)" id="b_click" class="b_click btn btn-danger">退出</a>
+				<a href="javascript:void(0)" id="c_click" class="b_click btn btn-warning">切换</a>
+			</div>
+		</div>
+		
+		
+		<!-- <input type="text" id="name" value="" placeholder="昵称;"> -->
+		
+		<!-- <input type="text" id="token" name="" value="" placeholder="" readonly="false"> -->
+	</div> 
+</body>
+<!-- <script type="text/javascript" src="./index.js"></script> -->
+<script type="text/javascript">
+window.onload = function(){
+var ws = new WebSocket("ws://127.0.0.1:8000"
+// ,{protocolVersion: 8,  
+//   origin: 'https://localhost:15449',
+//   rejectUnauthorized: false ,//重要，自签名证书只能这样设了。CA颁发的受信任证书就不需要了}
+  );
+function statusA(){
+	let status;
+	switch(ws.readyState){
+		case 0:
+			status = '连接中...';
+			break;
+		case 1:
+			status = '在线';
+			break;
+		case 2:
+			status = '正在下线...'
+			break;
+		case 3:
+			status = '离线';
+			break;
+		default:
+			status = '未知状态'
+	}
+	return status;
+}
+
+ws.onopen = function() {
+    // console.log("连接状态", ws);
+	let status = statusA();
+    $("#table_head .status").html("当前状态：" + status);
+    //ws.send(JSON.stringify({coming:"1",msg:""}));
+};
+ws.onmessage = function(evt) {
+    // console.log(evt)
+    //console.log(evt.data);
+	var data = JSON.parse(evt.data);
+	var {online,msg} = data;
+	$("#table_head .online").html(`<div style="padding-top: 7px;padding-bottom: 7px;">在线人数:${online}</div>`);
+	if(msg){
+		// console.log(msg)
+		$("#top_fix_table .msg").append(`"<tr><td>${msg}<td></tr>"`);
+	}
+	
+    
+};
+ws.onclose = function(evt) {
+    console.log("WebSocketClosed!");
+	let status = statusA();
+    $("#table_head .status").html("连接状态：" + status);
+	$("#table_head .online").html("<a href='javascript:window.onload();' class='a_click btn btn-primary'>登录</a>");
+};
+ws.onerror = function(evt) {
+    console.log("WebSocketError!");
+};
+ 
+$("#a_click").click(function(){
+	var msg = $("#message").val();
+	var chat = $("#chat").val();
+    console.log("发送", msg);
+	if(chat){
+		ws.send(JSON.stringify({chat:chat}));
+		$("#chat").val("");
+	}
+	if(msg){
+		ws.send(JSON.stringify({msg:msg}));
+		$("#message").val("");
+	}
+});
+$("#b_click").click(function(){
+    ws.close();
+	$("#table_head .online").html("<a href='javascript:window.onload();' class='a_click btn btn-primary'>登录</a>");
+    console.log("退出");
+})
+$("#c_click").click(function(){
+	$("#app h1").toggle();
+	$("#message").toggle();
+	$("#chat").toggle();
+	$("#top_fix_table .msg").html("");
+	$("#chat").val("");
+	$("#message").val("");
+})
+}
+
+
+</script>
+ 
+</html>

@@ -12,6 +12,7 @@
 
 ### 修改内容
 > 去除使用数据库
+> 添加webSocket聊天室
 
 ### 安装
 ```
@@ -28,7 +29,8 @@ npm install (安装速度较慢，建议使用cnpm)
 ### 启动
 
 ```
-node --harmony index.js <url>
-url表示小说目录页面url， 如 https://www.qb5.tw/shu/114139.html
-启动命令 node --harmony index.js https://www.qb5.tw/shu/114139.html
+启动命令 node index.js 
+浏览器打开网址 127.0.0.1:8000
+抓取小说 请使用目录页面url地址， 如 https://www.qb5.tw/shu/114139.html
+
 ```
