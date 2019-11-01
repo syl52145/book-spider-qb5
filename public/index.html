@@ -66,17 +66,16 @@
 		<h1 style="display: none;">聊天室</h1>
 		<div id="table_head" class="row">
 					<div class="status col-lg-6 col-md-6" style="padding-top: 7px;padding-bottom: 7px;"></div>
-					<div class="online col-lg-6 col-md-6"></div>
+					<div class="online col-lg-6 col-md-6">
+						<div style="padding-top: 7px;padding-bottom: 7px;display: none;">在线人数:<span></span></div>
+						<a href='javascript:void(0);' id='d_click' class='a_click btn btn-primary' >登录</a>
+					</div>
 		</div>
 		<div id="scroll_wrap" class="scroll_table_content" style="background: #F1F1F1;">
 			<table id="top_fix_table"  border="0" cellpadding="4" cellspacing="0" class="table table-hover">
-				
-				<!-- <h3 ></h3>
-				<h3></h3> -->
 				<tbody class="msg"></tbody>
 				
 			</table>
-			<!-- <div id="test_width"></div> -->
 		</div>
 		<div class="row" style="margin: 20px 0 20px;">
 			<div class="col-lg-6 col-md-6">
@@ -84,26 +83,90 @@
 				<input type="text" id="chat" name="" value="" style="display: none;" placeholder="开始聊天..." class="form-control">
 			</div>
 			<div class="col-lg-6 col-md-6" style="display: flex;justify-content: space-around;" >
-				<a href="javascript:void(0)" id="a_click" style="<!-- position: absolute;left: 40px; -->" class="a_click btn btn-info">发送</a>
+				<a href="javascript:void(0)" id="a_click" class="a_click btn btn-info">发送</a>
 				<a href="javascript:void(0)" id="b_click" class="b_click btn btn-danger">退出</a>
 				<a href="javascript:void(0)" id="c_click" class="b_click btn btn-warning">切换</a>
 			</div>
 		</div>
-		
-		
-		<!-- <input type="text" id="name" value="" placeholder="昵称;"> -->
-		
-		<!-- <input type="text" id="token" name="" value="" placeholder="" readonly="false"> -->
+	 
+	 <!-- 模态框 -->
+	   <div class="modal fade" id="myModal">
+	     <div class="modal-dialog">
+	       <div class="modal-content alert-danger">
+	    
+	         <!-- 模态框头部 -->
+	         <div class="modal-header">
+	           <h4 class="modal-title">错误提示
+			   <button type="button" class="close" data-dismiss="modal">&times;</button>
+			   </h4>
+	           
+	         </div>
+	    
+	         <!-- 模态框主体 -->
+	         <div class="modal-body">
+	           连接服务器失败，请重试。
+	         </div>
+	    
+	         <!-- 模态框底部 -->
+	         <div class="modal-footer">
+	           <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+	         </div>
+	    
+	       </div>
+	     </div>
+	   </div>
+	   
 	</div> 
 </body>
-<!-- <script type="text/javascript" src="./index.js"></script> -->
 <script type="text/javascript">
-window.onload = function(){
-var ws = new WebSocket("ws://127.0.0.1:8000"
-// ,{protocolVersion: 8,  
-//   origin: 'https://localhost:15449',
-//   rejectUnauthorized: false ,//重要，自签名证书只能这样设了。CA颁发的受信任证书就不需要了}
-  );
+
+$(function(){
+var ws;
+function webSoket(){
+	ws = new WebSocket("ws://127.0.0.1:8000"
+	// ,{protocolVersion: 8,  
+	//   origin: 'https://localhost:15449',
+	//   rejectUnauthorized: false ,//重要，自签名证书只能这样设了。CA颁发的受信任证书就不需要了}
+	  );
+	ws.onopen = function() {  //wss连接成功即执行的方法
+	    console.log("连接状态", ws);
+		let status = statusA();
+	    $("#table_head .status").html("当前状态：" + status);
+		$("#table_head .online div").toggle();
+		$("#table_head .online a").toggle();
+		$("#b_click").removeClass("disabled");
+		$("#a_click").removeClass("disabled");
+	    //ws.send(JSON.stringify({coming:"1",msg:""}));
+	};
+	ws.onmessage = function(evt) {
+	    // console.log(evt)
+	    //console.log(evt.data);
+		var data = JSON.parse(evt.data);
+		var {online,msg} = data;
+		$("#table_head .online div span").html(online);
+		if(msg){
+			// console.log(msg)
+			$("#top_fix_table .msg").append(`"<tr><td>${msg}<td></tr>"`);
+		}
+		
+	    
+	};
+	ws.onclose = function(evt) { // 主动关闭(或服务器关闭) 所执行的方法
+	    console.log("WebSocketClosed!");
+		let status = statusA();
+	    $("#table_head .status").html("连接状态：" + status);
+		$("#table_head .online div").hide();
+		$("#table_head .online a").show();
+		$("#b_click").addClass("disabled");
+		$("#a_click").addClass("disabled");
+		$("#top_fix_table .msg").html("");
+	};
+	ws.onerror = function(evt) { // 服务器为关闭状态,客户端创建连接ws时 会报错!
+	    console.log("WebSocketError!");
+		$("#myModal").modal("show");
+	};
+}
+webSoket();
 function statusA(){
 	let status;
 	switch(ws.readyState){
@@ -124,40 +187,10 @@ function statusA(){
 	}
 	return status;
 }
-
-ws.onopen = function() {
-    // console.log("连接状态", ws);
-	let status = statusA();
-    $("#table_head .status").html("当前状态：" + status);
-    //ws.send(JSON.stringify({coming:"1",msg:""}));
-};
-ws.onmessage = function(evt) {
-    // console.log(evt)
-    //console.log(evt.data);
-	var data = JSON.parse(evt.data);
-	var {online,msg} = data;
-	$("#table_head .online").html(`<div style="padding-top: 7px;padding-bottom: 7px;">在线人数:${online}</div>`);
-	if(msg){
-		// console.log(msg)
-		$("#top_fix_table .msg").append(`"<tr><td>${msg}<td></tr>"`);
-	}
-	
-    
-};
-ws.onclose = function(evt) {
-    console.log("WebSocketClosed!");
-	let status = statusA();
-    $("#table_head .status").html("连接状态：" + status);
-	$("#table_head .online").html("<a href='javascript:window.onload();' class='a_click btn btn-primary'>登录</a>");
-};
-ws.onerror = function(evt) {
-    console.log("WebSocketError!");
-};
  
 $("#a_click").click(function(){
 	var msg = $("#message").val();
 	var chat = $("#chat").val();
-    console.log("发送", msg);
 	if(chat){
 		ws.send(JSON.stringify({chat:chat}));
 		$("#chat").val("");
@@ -169,8 +202,8 @@ $("#a_click").click(function(){
 });
 $("#b_click").click(function(){
     ws.close();
-	$("#table_head .online").html("<a href='javascript:window.onload();' class='a_click btn btn-primary'>登录</a>");
     console.log("退出");
+
 })
 $("#c_click").click(function(){
 	$("#app h1").toggle();
@@ -180,7 +213,17 @@ $("#c_click").click(function(){
 	$("#chat").val("");
 	$("#message").val("");
 })
-}
+$("#d_click").click(function(){
+	webSoket();
+})
+
+})
+
+
+
+
+
+
 
 
 </script>

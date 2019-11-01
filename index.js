@@ -51,15 +51,18 @@ wss.on('connection', function(ws,req) {
 		var msg = JSON.parse(msg)
 		if(msg.hasOwnProperty("msg")){
 			msg = msg.msg;
-			var reg=/^([hH][tT]{2}[pP]:\/\/|[hH][tT]{2}[pP][sS]:\/\/)(([A-Za-z0-9-~]+)\.)+([A-Za-z0-9-~\/])+$/;
+			var reg=/^([hH][tT]{2}[pP]:\/\/|[hH][tT]{2}[pP][sS]:\/\/)(([A-Za-z0-9-~]+)\.)+([A-Za-z0-9-~\/])+/;
 			if(!reg.test(msg)){
 				wss.broadcast({msg:'请输入正确的网址！'});
 				return;
+			}else{
+				let isExist = await spider.loader(msg,wss);
+				if(!isExist){
+					await spider.run(wss);
+				}
 			}
-			await spider.loader(msg,wss);
-			await spider.run(wss);
-		}else
-		if(msg.hasOwnProperty("chat")){
+			
+		}else if(msg.hasOwnProperty("chat")){
 			chat = msg.chat
 			wss.broadcast({msg:chat}) 
 		}
