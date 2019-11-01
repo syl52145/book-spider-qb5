@@ -64,6 +64,10 @@ module.exports = {
         let $ = cheerio.load(page.text,{decodeEntities:false}); //html内容源码 {decodeEntities:false}防止乱码
         textname = $('#info>h1').text(); // 小说名称
 		wss.broadcast({msg:"正在抓取小说："+textname});
+		if(!textname){
+			wss.broadcast({msg:"未能获取小说名称。"});
+			return true;
+		}
         download_path = './download/' + textname; 
 		
         if (!fs.existsSync('./download')) { // 创建 目录./download

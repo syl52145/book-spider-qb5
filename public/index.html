@@ -115,6 +115,32 @@
 	       </div>
 	     </div>
 	   </div>
+	   <!-- 模态框 -->
+	     <div class="modal fade" id="myModalaa">
+	       <div class="modal-dialog">
+	         <div class="modal-content alert-danger">
+	      
+	           <!-- 模态框头部 -->
+	           <div class="modal-header">
+	             <h4 class="modal-title">错误提示
+	   			   <button type="button" class="close" data-dismiss="modal">&times;</button>
+	   			   </h4>
+	             
+	           </div>
+	      
+	           <!-- 模态框主体 -->
+	           <div class="modal-body">
+	             服务器开小差了,请重新登录。
+	           </div>
+	      
+	           <!-- 模态框底部 -->
+	           <div class="modal-footer">
+	             <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+	           </div>
+	      
+	         </div>
+	       </div>
+	     </div>
 	   
 	</div> 
 </body>
@@ -122,14 +148,14 @@
 
 $(function(){
 var ws;
-function webSoket(){
+function webSoket(login){
 	ws = new WebSocket("ws://127.0.0.1:8000"
 	// ,{protocolVersion: 8,  
 	//   origin: 'https://localhost:15449',
 	//   rejectUnauthorized: false ,//重要，自签名证书只能这样设了。CA颁发的受信任证书就不需要了}
 	  );
 	ws.onopen = function() {  //wss连接成功即执行的方法
-	    console.log("连接状态", ws);
+	    console.log("连接状态为："+statusA());
 		let status = statusA();
 	    $("#table_head .status").html("当前状态：" + status);
 		$("#table_head .online div").toggle();
@@ -154,6 +180,11 @@ function webSoket(){
 	ws.onclose = function(evt) { // 主动关闭(或服务器关闭) 所执行的方法
 	    console.log("WebSocketClosed!");
 		let status = statusA();
+		if(login){ // 如果登录状态是true 并且是服务器关闭---->服务器开小差,请重试
+			if(!evt.wasClean){ //如果服务器关闭 evt的属性wasClean值为false
+				$("#myModalaa").modal("show");
+			}
+		}
 	    $("#table_head .status").html("连接状态：" + status);
 		$("#table_head .online div").hide();
 		$("#table_head .online a").show();
@@ -163,10 +194,15 @@ function webSoket(){
 	};
 	ws.onerror = function(evt) { // 服务器为关闭状态,客户端创建连接ws时 会报错!
 	    console.log("WebSocketError!");
-		$("#myModal").modal("show");
+		login = false; //登录出错 重置登录状态为false
+		// $("#myModal").modal("show");
+		if(!login){ // 如果报错 ---->服务器连接失败,请重试
+			$("#myModal").modal("show");
+		}
+		
 	};
 }
-webSoket();
+webSoket(true);
 function statusA(){
 	let status;
 	switch(ws.readyState){
@@ -201,8 +237,8 @@ $("#a_click").click(function(){
 	}
 });
 $("#b_click").click(function(){
-    ws.close();
-    console.log("退出");
+    // ws.close("do"); //主动关闭
+	ws.close(); //主动关闭
 
 })
 $("#c_click").click(function(){
@@ -214,7 +250,7 @@ $("#c_click").click(function(){
 	$("#message").val("");
 })
 $("#d_click").click(function(){
-	webSoket();
+	webSoket(true);
 })
 
 })
