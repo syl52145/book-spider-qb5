@@ -2,11 +2,7 @@
 ### 简介
 > 这是一个NodeJS爬虫项目， 用于爬取[全本小说网](https://www.qb5.tw/shu/114139.html)的小说资源 》从章节目录开始抓取
 
-<<<<<<< HEAD
 > 用到的模快主要有superagent，cheerio，superagent-charset，cron，bluebird，ws, express
-=======
-> 用到的模快主要有superagent，cheerio，superagent-charset，cron，bluebird
->>>>>>> three commit
 
 > 本项目在Ubuntu环境下开发，未进行Windows测试，NodeJS版本为 v7.1.0
 
